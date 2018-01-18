@@ -3,28 +3,98 @@
 
 <head>
   <script src="https://simplewebrtc.com/latest-v2.js"></script>
+  <script src="./marcel.js"></script>
 </head>
 
 <body>
-  <video height="300" id="localVideo"></video>
-  <div id="remotesVideos"></div>
+  <div id="container">
+    <div id="header">
+      <video height="300" id="localVideo"></video>
+    </div>
+    <div id="remotesVideos"></div>
+  </div>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #333;
+    }
+
+    #container {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #header {
+      width: 100%;
+      height: 6em;
+      display: flex;
+      align-items: center;
+      background-color: #FFF3;
+    }
+
+    #header video {
+      height: 100%;
+      margin: auto;
+    }
+
+    #remotesVideos {
+      width: 100%;
+      height: calc(100% - 6em);
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    #remotesVideos video {
+      width: calc(100% / 3);
+    }
+  </style>
 
   <script>
-    const webrtc = new SimpleWebRTC({
-      // the id/element dom element that will hold "our" video
-      localVideoEl: 'localVideo',
-      // the id/element dom element that will hold remote videos
-      remoteVideosEl: 'remotesVideos',
-      // immediately ask for camera access
-      autoRequestMedia: true,
-      url: "http://localhost:8888",
-    })
+    class ConfCallPlugin extends Marcel.Plugin {
+      constructor() {
+        super({
+          defaultProps: {
+            signalURL: 'http://localhost:8888',
+            channel: 'test'
+          }
+        })
+        this.container = document.getElementById('container')
+      }
 
-    // we have to wait until it's ready
-    webrtc.on('readyToCall', function () {
-      // you can name it anything
-      webrtc.joinRoom('thisisatest');
-    });
+      propsDidChange(prevProps) {
+        if (!prevProps.signalURL) this.createWebtrcClient()
+        else if (this.props.channel !== prevProps.channel) this.changeChannel()
+        else if (this.props.signalURL !== prevProps.signalURL) location.reload()
+      }
+
+      changeChannel() {
+        this.webrtcClient.leaveRoom()
+        this.webrtcClient.joinRoom(this.props.channel)
+      }
+
+      createWebtrcClient() {
+        const { signalURL, channel } = this.props
+
+        this.webrtcClient = new SimpleWebRTC({
+          localVideoEl: 'localVideo',
+          remoteVideosEl: 'remotesVideos',
+          autoRequestMedia: true,
+          url: signalURL,
+        })
+
+        this.webrtcClient.on('readyToCall', () => {
+          this.webrtcClient.joinRoom(channel);
+        })
+      }
+    }
+
+    const instance = new ConfCallPlugin()
+    instance.createWebtrcClient()
   </script>
 </body>
 
