@@ -2,6 +2,7 @@
 <html>
 
 <head>
+  <meta charset="UTF-8">
   <link href="https://use.fontawesome.com/releases/v5.0.4/css/all.css" rel="stylesheet">
   <link href="style.css" rel="stylesheet">
   <script src="https://simplewebrtc.com/latest-v2.js"></script>
@@ -35,8 +36,10 @@
       }
 
       propsDidChange(prevProps) {
-        if (!prevProps.signalURL) this.createWebtrcClient()
+        if (!this.props.signalURL) console.error("Conf-Call : Missing signalURL prop")
+        else if (!prevProps.signalURL) this.createWebtrcClient()
         else if (this.props.signalURL !== prevProps.signalURL) location.reload()
+        else if (!this.props.channel) console.error("Conf-Call : Missing channel prop")
         else if (this.props.channel !== prevProps.channel && this.isInRoom) this.changeChannel()
       }
 
