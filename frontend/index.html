@@ -23,12 +23,7 @@
   <script>
     class ConfCallPlugin extends Marcel.Plugin {
       constructor() {
-        super({
-          defaultProps: {
-            signalURL: 'http://192.168.1.27:8888',
-            channel: 'test'
-          }
-        })
+        super()
 
         this.localVideo = document.getElementById('localVideo')
         this.phoneButton = document.getElementById('phoneButton')
