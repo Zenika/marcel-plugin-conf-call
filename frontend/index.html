@@ -2,6 +2,8 @@
 <html>
 
 <head>
+  <link href="https://use.fontawesome.com/releases/v5.0.4/css/all.css" rel="stylesheet">
+  <link href="style.css" rel="stylesheet">
   <script src="https://simplewebrtc.com/latest-v2.js"></script>
   <script src="./marcel.js"></script>
 </head>
@@ -10,71 +12,48 @@
   <div id="container">
     <div id="header">
       <video height="300" id="localVideo"></video>
+      <button id="phoneButton">
+        <i class="fas fa-phone-square"></i>
+      </button>
     </div>
     <div id="remotesVideos"></div>
   </div>
-
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background: #333;
-    }
-
-    #container {
-      width: 100vw;
-      height: 100vh;
-    }
-
-    #header {
-      width: 100%;
-      height: 6em;
-      display: flex;
-      align-items: center;
-      background-color: #FFF3;
-    }
-
-    #header video {
-      height: 100%;
-      margin: auto;
-    }
-
-    #remotesVideos {
-      width: 100%;
-      height: calc(100% - 6em);
-      display: flex;
-      flex-direction: row;
-      align-items: flex-start;
-      justify-content: center;
-    }
-
-    #remotesVideos video {
-      width: calc(100% / 3);
-    }
-  </style>
 
   <script>
     class ConfCallPlugin extends Marcel.Plugin {
       constructor() {
         super({
           defaultProps: {
-            signalURL: 'http://localhost:8888',
+            signalURL: 'http://192.168.1.27:8888',
             channel: 'test'
           }
         })
         this.container = document.getElementById('container')
+        this.localVideo = document.getElementById('localVideo')
+        this.phoneButton = document.getElementById('phoneButton')
+        this.phoneButton.addEventListener('click', () => this.phoneButtonClicked())
       }
 
       propsDidChange(prevProps) {
         if (!prevProps.signalURL) this.createWebtrcClient()
-        else if (this.props.channel !== prevProps.channel) this.changeChannel()
         else if (this.props.signalURL !== prevProps.signalURL) location.reload()
+        else if (this.props.channel !== prevProps.channel) this.changeChannel()
       }
 
       changeChannel() {
+        this.leaveRoom()
+        this.joinRoom()
+      }
+
+      leaveRoom() {
         this.webrtcClient.leaveRoom()
-        this.webrtcClient.joinRoom(this.props.channel)
+        this.webrtcClient.stopLocalVideo()
+        this.localVideo.style.visibility = 'hidden'
+      }
+
+      joinRoom() {
+        this.webrtcClient.startLocalVideo()
+        this.phoneButton.disabled = true
       }
 
       createWebtrcClient() {
@@ -83,15 +62,32 @@
         this.webrtcClient = new SimpleWebRTC({
           localVideoEl: 'localVideo',
           remoteVideosEl: 'remotesVideos',
-          autoRequestMedia: true,
+          autoRequestMedia: false,
           url: signalURL,
+          debug: true,
         })
 
         this.webrtcClient.on('readyToCall', () => {
-          this.webrtcClient.joinRoom(channel);
+          this.webrtcClient.joinRoom(this.props.channel)
+          this.localVideo.style.visibility = 'visible'
+        })
+
+        this.webrtcClient.on('joinedRoom', () => {
+          this.phoneButton.classList.add('close')
+          this.phoneButton.disabled = false
+        })
+
+        this.webrtcClient.on('leftRoom', () => {
+          this.phoneButton.classList.remove('close')
         })
       }
+
+      phoneButtonClicked() {
+        if (this.phoneButton.classList.contains('close')) this.leaveRoom()
+        else this.joinRoom()
+      }
     }
+
 
     const instance = new ConfCallPlugin()
     instance.createWebtrcClient()
