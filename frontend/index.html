@@ -28,7 +28,7 @@
             channel: 'test'
           }
         })
-        this.container = document.getElementById('container')
+
         this.localVideo = document.getElementById('localVideo')
         this.phoneButton = document.getElementById('phoneButton')
         this.phoneButton.addEventListener('click', () => this.phoneButtonClicked())
@@ -37,12 +37,12 @@
       propsDidChange(prevProps) {
         if (!prevProps.signalURL) this.createWebtrcClient()
         else if (this.props.signalURL !== prevProps.signalURL) location.reload()
-        else if (this.props.channel !== prevProps.channel) this.changeChannel()
+        else if (this.props.channel !== prevProps.channel && this.isInRoom) this.changeChannel()
       }
 
       changeChannel() {
-        this.leaveRoom()
-        this.joinRoom()
+        this.webrtcClient.leaveRoom()
+        this.webrtcClient.joinRoom(this.props.channel)
       }
 
       leaveRoom() {
@@ -56,15 +56,18 @@
         this.phoneButton.disabled = true
       }
 
+      phoneButtonClicked() {
+        if (this.phoneButton.classList.contains('close')) this.leaveRoom()
+        else this.joinRoom()
+      }
+
       createWebtrcClient() {
         const { signalURL, channel } = this.props
 
         this.webrtcClient = new SimpleWebRTC({
           localVideoEl: 'localVideo',
           remoteVideosEl: 'remotesVideos',
-          autoRequestMedia: false,
           url: signalURL,
-          debug: true,
         })
 
         this.webrtcClient.on('readyToCall', () => {
@@ -75,16 +78,13 @@
         this.webrtcClient.on('joinedRoom', () => {
           this.phoneButton.classList.add('close')
           this.phoneButton.disabled = false
+          this.isInRoom = true
         })
 
         this.webrtcClient.on('leftRoom', () => {
           this.phoneButton.classList.remove('close')
+          this.isInRoom = false
         })
-      }
-
-      phoneButtonClicked() {
-        if (this.phoneButton.classList.contains('close')) this.leaveRoom()
-        else this.joinRoom()
       }
     }
 
