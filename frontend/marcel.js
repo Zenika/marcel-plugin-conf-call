@@ -41,5 +41,19 @@
     }
   }
 
-  window.Marcel = { Plugin }
+  class Debug {
+    static changeProps(newProps, prevProps) {
+      dispatchEvent(
+        new MessageEvent('message', {
+          source: parent,
+          data: {
+            type: 'propsChange',
+            payload: { newProps, prevProps },
+          },
+        }),
+      )
+    }
+  }
+
+  window.Marcel = { Plugin, Debug }
 })()
