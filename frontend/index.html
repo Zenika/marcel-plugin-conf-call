@@ -31,6 +31,7 @@
       constructor() {
         super()
 
+        this.grid = { rows: 0, cols: 0, nb: 0 }
         this.localVideo = document.getElementById('localVideo')
         this.remotesVideos = document.getElementById('remotesVideos')
         this.phoneButton = document.getElementById('phoneButton')
@@ -42,11 +43,12 @@
       }
 
       propsDidChange(prevProps) {
-        if (!this.props.signalURL) console.error("Conf-Call : Missing signalURL prop")
+        const { channel, signalURL } = this.props
+        if (!signalURL) console.error("Conf-Call : Missing signalURL prop")
         else if (!prevProps.signalURL) this.createWebtrcClient()
-        else if (this.props.signalURL !== prevProps.signalURL) location.reload()
-        else if (!this.props.channel) console.error("Conf-Call : Missing channel prop")
-        else if (this.props.channel !== prevProps.channel && this.isInRoom) this.changeChannel()
+        else if (signalURL !== prevProps.signalURL) location.reload()
+        else if (!channel) console.error("Conf-Call : Missing channel prop")
+        else if (channel !== prevProps.channel && this.isInRoom) this.changeChannel()
       }
 
       changeChannel() {
@@ -104,6 +106,59 @@
         else this.pauseWebcam()
       }
 
+      getVideoSize(rows, cols) {
+        // Retreive container size
+        const { clientWidth: maxWidth, clientHeight: maxHeight } = this.remotesVideos
+
+        // Calculate ratios of videos and container
+        const containerRatio = maxWidth / maxHeight
+        const videoRatio = 4 / 3
+        let width, height
+
+        if (containerRatio < videoRatio) {
+          // Calculate based on width
+          width = maxWidth / cols
+          height = width / videoRatio
+        } else {
+          //Calculate based on height
+          height = maxHeight / rows
+          width = height * videoRatio
+        }
+
+        // Return 0 if the given grid is not displayable withim the container
+        if (width * cols > maxWidth || height * rows > maxHeight) {
+          width = 0
+          height = 0
+        }
+
+        return { width, height }
+      }
+
+      addVideoToGrid() {
+        this.grid.nb++
+
+        // If the grid is not complete, no need to add any col or row
+        if (this.grid.nb <= this.grid.cols * this.grid.rows) return
+
+        // Calculate possible size of videos if we add a col or a row
+        const sizeForNewRow = this.getVideoSize(this.grid.rows + 1, this.grid.cols)
+        const sizeForNewCol = this.getVideoSize(this.grid.rows, this.grid.cols + 1)
+
+        // Find wich case is the best between adding a row or a col
+        if (this.grid.rows === 0 || this.grid.cols === 0) this.grid = { ...this.grid, rows: 1, cols: 1 }
+        else if (sizeForNewRow.width > sizeForNewCol.width) this.grid.rows++
+        else this.grid.cols++
+      }
+
+      updateRemotesVideosSize() {
+        const videoSize = this.getVideoSize(this.grid.rows, this.grid.cols)
+        const videos = this.remotesVideos.querySelectorAll('#remotesVideos video')
+        videos.forEach(video => {
+          video.style.width = `${videoSize.width - 2}px`
+          video.style.height = `${videoSize.height - 2}px`
+        })
+      }
+
       createWebtrcClient() {
         const { signalURL, channel } = this.props
 
@@ -127,6 +182,19 @@
         this.webrtcClient.on('leftRoom', () => {
           this.phoneButton.classList.remove('close')
           this.isInRoom = false
+        })
+
+        this.webrtcClient.on('videoAdded', () => {
+          this.addVideoToGrid()
+          this.updateRemotesVideosSize()
+        })
+
+        addEventListener('resize', () => {
+          // When resizing the plugin, recalculate the grid
+          this.grid = { cols: 0, rows: 0, nb: 0 }
+          const videos = [...this.remotesVideos.getElementsByTagName('video')]
+          videos.forEach(video => this.addVideoToGrid(video))
+          this.updateRemotesVideosSize()
         })
       }
     }
