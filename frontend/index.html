@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <link href="https://use.fontawesome.com/releases/v5.0.4/css/all.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link href="style.css" rel="stylesheet">
   <script src="https://simplewebrtc.com/latest-v2.js"></script>
   <script src="./marcel.js"></script>
@@ -11,13 +11,19 @@
 
 <body>
   <div id="container">
-    <div id="header">
-      <video height="300" id="localVideo"></video>
-      <button id="phoneButton">
-        <i class="fas fa-phone-square"></i>
-      </button>
-    </div>
     <div id="remotesVideos"></div>
+    <div id="header">
+      <button id="microButton" class="button secondary">
+        <i class="material-icons">mic</i>
+      </button>
+      <button id="phoneButton" class="button">
+        <i class="material-icons">phone</i>
+      </button>
+      <button id="webcamButton" class="button secondary">
+        <i class="material-icons">videocam</i>
+      </button>
+      <video id="localVideo"></video>
+    </div>
   </div>
 
   <script>
@@ -26,8 +32,13 @@
         super()
 
         this.localVideo = document.getElementById('localVideo')
+        this.remotesVideos = document.getElementById('remotesVideos')
         this.phoneButton = document.getElementById('phoneButton')
+        this.microButton = document.getElementById('microButton')
+        this.webcamButton = document.getElementById('webcamButton')
         this.phoneButton.addEventListener('click', () => this.phoneButtonClicked())
+        this.microButton.addEventListener('click', () => this.microButtonClicked())
+        this.webcamButton.addEventListener('click', () => this.webcamButtonClicked())
       }
 
       propsDidChange(prevProps) {
@@ -54,9 +65,43 @@
         this.phoneButton.disabled = true
       }
 
+      muteMicro() {
+        this.microButton.classList.add('muted')
+        this.microButton.getElementsByTagName('i')[0].innerHTML = 'mic_off'
+        this.webrtcClient.mute()
+      }
+
+      pauseWebcam() {
+        this.webcamButton.classList.add('muted')
+        this.webcamButton.getElementsByTagName('i')[0].innerHTML = 'videocam_off'
+        this.webrtcClient.pauseVideo()
+      }
+
+      unmuteMicro() {
+        this.microButton.classList.remove('muted')
+        this.microButton.getElementsByTagName('i')[0].innerHTML = 'mic'
+        this.webrtcClient.unmute()
+      }
+
+      resumeWebcam() {
+        this.webcamButton.classList.remove('muted')
+        this.webcamButton.getElementsByTagName('i')[0].innerHTML = 'videocam'
+        this.webrtcClient.resumeVideo()
+      }
+
       phoneButtonClicked() {
         if (this.phoneButton.classList.contains('close')) this.leaveRoom()
         else this.joinRoom()
+      }
+
+      microButtonClicked() {
+        if (this.microButton.classList.contains('muted')) this.unmuteMicro()
+        else this.muteMicro()
+      }
+
+      webcamButtonClicked() {
+        if (this.webcamButton.classList.contains('muted')) this.resumeWebcam()
+        else this.pauseWebcam()
       }
 
       createWebtrcClient() {
