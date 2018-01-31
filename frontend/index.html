@@ -160,8 +160,8 @@
         const videoSize = this.getVideoSize(this.grid.rows, this.grid.cols)
         const videos = this.remotesVideos.querySelectorAll('#remotesVideos video')
         videos.forEach(video => {
-          video.style.width = `${videoSize.width - 2}px`
-          video.style.height = `${videoSize.height - 2}px`
+          video.style.width = `${videoSize.width}px`
+          video.style.height = `${videoSize.height}px`
         })
       }
 
