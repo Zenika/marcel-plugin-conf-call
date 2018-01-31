@@ -12,7 +12,7 @@
 <body>
   <div id="container">
     <div id="remotesVideos"></div>
-    <div id="header">
+    <div id="controls">
       <button id="microButton" class="button secondary">
         <i class="material-icons">mic</i>
       </button>
@@ -29,11 +29,17 @@
   <script>
     class ConfCallPlugin extends Marcel.Plugin {
       constructor() {
-        super()
+        super({
+          defaultProps: {
+            background: 'transparent',
+            controlsBackground: 'transparent'
+          }
+        })
 
         this.grid = { rows: 0, cols: 0, nb: 0 }
         this.localVideo = document.getElementById('localVideo')
         this.remotesVideos = document.getElementById('remotesVideos')
+        this.controls = document.getElementById('controls')
         this.phoneButton = document.getElementById('phoneButton')
         this.microButton = document.getElementById('microButton')
         this.webcamButton = document.getElementById('webcamButton')
@@ -202,6 +208,11 @@
           videos.forEach(video => this.addVideoToGrid(video))
           this.updateRemotesVideosSize()
         })
+      }
+
+      render() {
+        this.remotesVideos.style.background = this.props.background
+        this.controls.style.background = this.props.controlsBackground
       }
     }
 
