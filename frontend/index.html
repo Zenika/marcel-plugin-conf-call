@@ -176,11 +176,17 @@
         this.webrtcClient.on('joinedRoom', () => {
           this.phoneButton.classList.add('close')
           this.phoneButton.disabled = false
+          this.microButton.classList.add('visible')
+          this.webcamButton.classList.add('visible')
           this.isInRoom = true
         })
 
         this.webrtcClient.on('leftRoom', () => {
           this.phoneButton.classList.remove('close')
+          this.microButton.classList.remove('visible')
+          this.webcamButton.classList.remove('visible')
+          this.unmuteMicro()
+          this.resumeWebcam()
           this.isInRoom = false
         })
 
