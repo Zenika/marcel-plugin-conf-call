@@ -1,0 +1,13 @@
+{
+  "name": "marcel-plugin-conf-call",
+  "version": "1.0.0",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.1"
+  },
+  "scripts": {
+    "build": "yarn babel -d frontend src"
+  }
+}
