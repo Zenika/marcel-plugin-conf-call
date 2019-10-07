@@ -1,0 +1,31 @@
+{
+  "eltName": "marcel-plugin-conf-call",
+  "name": "Conf Call",
+  "description": "Display a conf call widget",
+  "frontend": {
+    "props": [
+      {
+        "name": "signalURL",
+        "type": "string",
+        "description": "The url of the signal server"
+      },
+      {
+        "name": "channel",
+        "type": "string",
+        "description": "The channel on the given signal server to join"
+      },
+      {
+        "name": "background",
+        "type": "string",
+        "description": "The color of the background for this plugin",
+        "value": "transparent"
+      },
+      {
+        "name": "controlsBackground",
+        "type": "string",
+        "description": "The background color of the controls bottom pannel",
+        "value": "transparent"
+      }
+    ]
+  }
+}
